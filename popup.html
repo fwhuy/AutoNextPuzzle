@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      width: 280px;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+    }
+    
+    h2 {
+      margin: 0 0 16px 0;
+      font-size: 16px;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+    
+    .setting-group {
+      margin-bottom: 16px;
+    }
+    
+    label {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      font-size: 14px;
+      color: #333;
+    }
+    
+    input[type="checkbox"] {
+      margin-right: 8px;
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+    
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    
+    .input-group label {
+      font-size: 13px;
+      color: #555;
+    }
+    
+    input[type="number"] {
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    
+    input[type="number"]:focus {
+      outline: none;
+      border-color: #81b64c;
+    }
+    
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #81b64c;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    button:hover {
+      background-color: #6fa33d;
+    }
+    
+    button:active {
+      background-color: #5e8c34;
+    }
+    
+    .status {
+      margin-top: 12px;
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 13px;
+      text-align: center;
+      display: none;
+    }
+    
+    .status.show {
+      display: block;
+    }
+    
+    .status.success {
+      background-color: #e8f5e9;
+      color: #2e7d32;
+    }
+  </style>
+</head>
+<body>
+  <h2>♟️ Chess.com Auto-Next</h2>
+  
+  <div class="setting-group">
+    <label>
+      <input type="checkbox" id="enableToggle">
+      Enable Auto-Next
+    </label>
+  </div>
+  
+  <div class="setting-group">
+    <div class="input-group">
+      <label for="delayInput">Delay (milliseconds)</label>
+      <input type="number" id="delayInput" min="0" max="10000" step="100" value="800">
+    </div>
+  </div>
+  
+  <button id="saveBtn">Save Settings</button>
+  
+  <div id="status" class="status"></div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>
