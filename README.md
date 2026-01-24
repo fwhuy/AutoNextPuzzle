@@ -11,21 +11,41 @@ A Chrome extension that automatically clicks the "Next" or "Continue" button aft
 
 ##  Installation
 
-### Method 1: Load Unpacked (For Development/Testing)
+##  Installation
 
-1. Download this extension (either clone the repo or download the ZIP)
-2. Extract the files to a folder on your computer
-3. Open Google Chrome and navigate to `chrome://extensions/`
-4. Enable **Developer mode** (toggle switch in the top-right corner)
-5. Click **Load unpacked**
-6. Select the folder containing the extension files
-7. The extension icon should appear in your Chrome toolbar
+### Method 1: Packed Extension (Recommended - Easiest)
 
-### Method 2: From Releases
+1. **Download the packed extension:**
+   - Download `AutoNextPuzzle.crx` from [Releases](https://github.com/fwhuy/AutoNextPuzzle/releases/latest)
 
-1. **Download** the latest release: [Download AutoNextPuzzle.zip](https://github.com/fwhuy/AutoNextPuzzle/releases/latest/download/autonextpuzzle.zip)
-2. Extract to a folder
-3. Follow steps 3-7 from Method 1 above
+2. **Install in Chrome:**
+   - Open Google Chrome and navigate to `chrome://extensions/`
+   - Enable **Developer mode** (toggle switch in the top-right corner)
+   - Drag and drop the `.crx` file into the Chrome extensions page
+   - Click **Add extension** when prompted
+   - The extension icon should appear in your Chrome toolbar
+
+**Note:** If Chrome blocks the installation, you may need to use Method 2 (Unpacked) instead.
+
+### Method 2: Unpacked Extension (For Development/Testing)
+
+1. **Download the source code:**
+   - Download `AutoNextPuzzle.zip` from [Releases](https://github.com/fwhuy/AutoNextPuzzle/releases/latest)
+   - Or clone the repository: `git clone https://github.com/fwhuy/AutoNextPuzzle.git`
+
+2. **Extract the ZIP file** (if downloaded):
+   - Right-click the downloaded ZIP file
+   - Select "Extract All" or use your preferred extraction tool
+   - Choose a location and extract the files to a folder
+
+3. **Load the extension in Chrome:**
+   - Open Google Chrome and navigate to `chrome://extensions/`
+   - Enable **Developer mode** (toggle switch in the top-right corner)
+   - Click **Load unpacked**
+   - Select the folder containing the extracted extension files (the folder with `manifest.json`, `src/`, and `icons/` folders)
+   - The extension icon should appear in your Chrome toolbar
+
+**Note:** Keep the extension folder in a permanent location. If you move or delete it, you'll need to reload the extension.
 
 ##  Usage
 
