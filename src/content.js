@@ -1,5 +1,12 @@
 // Chess.com Auto-Next Content Script
 (function() {
+  // Only run on puzzle pages
+  const allowedPaths = ['/puzzles', '/puzzles/rated'];
+  const currentPath = window.location.pathname;
+  if (!allowedPaths.some(path => currentPath === path || currentPath.startsWith(path + '/'))) {
+    return; // Exit if not on a puzzle page
+  }
+
   let settings = { enabled: true, delay: 5 };
   let hasClicked = false;
   let toggleButton = null;
@@ -79,40 +86,101 @@
 
     const settingsBtn = findSettingsButton();
     let leftPosition = 'auto';
-    let rightPosition = '260px';
+    let rightPosition = 'auto';
     let bottomPosition = '28px';
 
-    // If we found settings button, position to its right
+    // Use consistent positioning relative to settings button
     if (settingsBtn) {
       const rect = settingsBtn.getBoundingClientRect();
-      leftPosition = `${rect.right + 12 - 240}px`;
-      rightPosition = 'auto';
-      bottomPosition = `${window.innerHeight - rect.bottom + 8}px`;
+      // Position relative to settings button for consistency
+      // Calculate as percentage of viewport for better scaling
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      
+      // Position to the left of settings button
+      // Use right positioning for better consistency across screen sizes
+      const rightEdge = viewportWidth - rect.right;
+      rightPosition = `${rightEdge + 240}px`;
+      leftPosition = 'auto';
+      
+      // Bottom position relative to settings button
+      const bottomEdge = viewportHeight - rect.bottom;
+      bottomPosition = `${bottomEdge + 8}px`;
+    } else {
+      // Fallback: use consistent viewport-relative positioning
+      // Approximately 260px from right edge, scales with viewport
+      rightPosition = '260px';
     }
 
-    // Create compact toggle button
+    // Try to inject into Chess.com's UI structure first
+    function tryInjectIntoUI() {
+      // Look for button containers, toolbars, or control panels
+      const possibleContainers = [
+        settingsBtn?.parentElement,
+        settingsBtn?.closest('[class*="toolbar"]'),
+        settingsBtn?.closest('[class*="control"]'),
+        settingsBtn?.closest('[class*="button-group"]'),
+        document.querySelector('[class*="puzzle-controls"]'),
+        document.querySelector('[class*="game-controls"]'),
+        document.querySelector('[class*="toolbar"]')
+      ].filter(Boolean);
+
+      for (const container of possibleContainers) {
+        if (container && container.offsetParent) {
+          return container;
+        }
+      }
+      return null;
+    }
+
+    const uiContainer = tryInjectIntoUI();
+    const shouldUseFixed = !uiContainer;
+
+    // Create toggle that matches Chess.com's style
     const toggleContainer = document.createElement('div');
     toggleContainer.id = 'chess-auto-next-toggle';
     
-    toggleContainer.style.cssText = `
-      position: fixed;
-      ${leftPosition !== 'auto' ? `left: ${leftPosition};` : ''}
-      ${rightPosition !== 'auto' ? `right: ${rightPosition};` : ''}
-      bottom: ${bottomPosition};
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      z-index: 10000;
-      background: transparent;
-      pointer-events: auto;
-    `;
+    if (uiContainer) {
+      // Inject into UI container - make it look native
+      toggleContainer.style.cssText = `
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-left: 12px;
+        vertical-align: middle;
+      `;
+      
+      // Try to match container's styling
+      const containerStyle = window.getComputedStyle(uiContainer);
+      toggleContainer.style.fontFamily = containerStyle.fontFamily || '-apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif';
+      toggleContainer.style.fontSize = containerStyle.fontSize || '13px';
+    } else {
+      // Fallback to fixed positioning but make it look integrated
+      toggleContainer.style.cssText = `
+        position: fixed;
+        ${leftPosition !== 'auto' ? `left: ${leftPosition};` : ''}
+        ${rightPosition !== 'auto' ? `right: ${rightPosition};` : ''}
+        bottom: ${bottomPosition};
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        z-index: 10000;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        padding: 6px 12px;
+        border-radius: 6px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        pointer-events: auto;
+      `;
+    }
 
     toggleContainer.innerHTML = `
-      <span style="font-size: 12px; color: #666; white-space: nowrap; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;">Auto-Next</span>
-      <label class="toggle-container" style="position: relative; display: inline-block; width: 40px; height: 22px; cursor: pointer; flex-shrink: 0;">
+      <span style="font-size: 13px; color: #333; white-space: nowrap; font-weight: 500; user-select: none;">Auto-Next</span>
+      <label class="toggle-container" style="position: relative; display: inline-block; width: 44px; height: 24px; cursor: pointer; flex-shrink: 0;">
         <input type="checkbox" ${settings.enabled ? 'checked' : ''} style="opacity: 0; width: 0; height: 0; position: absolute;">
-        <span class="toggle-slider" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: ${settings.enabled ? '#81b64c' : '#ccc'}; border-radius: 22px; transition: background-color 0.3s;">
-          <span class="toggle-circle" style="position: absolute; height: 18px; width: 18px; left: 2px; bottom: 2px; background-color: white; border-radius: 50%; transition: transform 0.3s; transform: translateX(${settings.enabled ? '18px' : '0'}); box-shadow: 0 1px 3px rgba(0,0,0,0.3);"></span>
+        <span class="toggle-slider" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: ${settings.enabled ? '#81b64c' : '#ccc'}; border-radius: 24px; transition: background-color 0.3s;">
+          <span class="toggle-circle" style="position: absolute; height: 20px; width: 20px; left: 2px; bottom: 2px; background-color: white; border-radius: 50%; transition: transform 0.3s; transform: translateX(${settings.enabled ? '20px' : '0'}); box-shadow: 0 1px 3px rgba(0,0,0,0.3);"></span>
         </span>
       </label>
     `;
@@ -125,21 +193,40 @@
       });
     });
 
-    // Always append to body with fixed positioning
-    document.body.appendChild(toggleContainer);
+    // Insert into UI container or body
+    if (uiContainer) {
+      // Insert after settings button or at the end of container
+      if (settingsBtn && settingsBtn.nextSibling) {
+        uiContainer.insertBefore(toggleContainer, settingsBtn.nextSibling);
+      } else if (settingsBtn) {
+        uiContainer.appendChild(toggleContainer);
+      } else {
+        uiContainer.appendChild(toggleContainer);
+      }
+    } else {
+      document.body.appendChild(toggleContainer);
+    }
     toggleButton = toggleContainer;
 
-    // Update position on window resize if we have a settings button
-    if (settingsBtn) {
+    // Update position on window resize and scroll (only if using fixed positioning)
+    if (shouldUseFixed) {
       const updatePosition = () => {
-        if (settingsBtn && toggleContainer) {
+        if (toggleContainer && settingsBtn && settingsBtn.offsetParent) {
           const newRect = settingsBtn.getBoundingClientRect();
-          toggleContainer.style.left = `${newRect.right + 12 - 240}px`;
-          toggleContainer.style.right = 'auto';
-          toggleContainer.style.bottom = `${window.innerHeight - newRect.bottom + 8}px`;
+          const viewportWidth = window.innerWidth;
+          const viewportHeight = window.innerHeight;
+          
+          const rightEdge = viewportWidth - newRect.right;
+          toggleContainer.style.right = `${rightEdge + 240}px`;
+          toggleContainer.style.left = 'auto';
+          
+          const bottomEdge = viewportHeight - newRect.bottom;
+          toggleContainer.style.bottom = `${bottomEdge + 8}px`;
         }
       };
+      
       window.addEventListener('resize', updatePosition);
+      window.addEventListener('scroll', updatePosition, true);
     }
   }
 
@@ -155,7 +242,7 @@
       slider.style.backgroundColor = settings.enabled ? '#81b64c' : '#ccc';
     }
     if (sliderCircle) {
-      sliderCircle.style.transform = `translateX(${settings.enabled ? '18px' : '0'})`;
+      sliderCircle.style.transform = `translateX(${settings.enabled ? '20px' : '0'})`;
     }
   }
 

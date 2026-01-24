@@ -16,7 +16,10 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://www.chess.com/*"],
+      "matches": [
+        "https://www.chess.com/puzzles",
+        "https://www.chess.com/puzzles/rated"
+      ],
       "js": ["src/content.js"],
       "run_at": "document_idle"
     }
