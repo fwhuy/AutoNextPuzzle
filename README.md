@@ -1,19 +1,20 @@
 # ♟️ Chess.com Auto-Next Puzzle Extension
 
-A Chrome extension that automatically clicks the "Next" or "Continue" button after you complete a puzzle on Chess.com, because chess.com decided to remove it.
+A Chrome/Brave extension that automatically clicks the "Next" or "Continue" button after you complete a puzzle on Chess.com, because chess.com decided to remove it.
 
 ##  Features
 
 - **Automatic Advancement**: Automatically clicks the Next/Continue button after puzzle completion
 - **Configurable Delay**: Set custom delay (in milliseconds) before auto-clicking (default: 5ms)
 - **Easy Toggle**: Enable or disable the feature with a toggle switch on the puzzle page (like old chess.com)
+- **Browser Support**: Works on both Google Chrome and Brave Browser
 
 
 ##  Installation
 
-##  Installation
+### Chrome
 
-### Method 1: Packed Extension (Recommended - Easiest)
+#### Method 1: Packed Extension (Recommended - Easiest)
 
 1. **Download the packed extension:**
    - Download `AutoNextPuzzle.crx` from [Releases](https://github.com/fwhuy/AutoNextPuzzle/releases/latest)
@@ -28,7 +29,7 @@ A Chrome extension that automatically clicks the "Next" or "Continue" button aft
 
 **Note:** If Chrome blocks the installation, you may need to use Method 2 (Unpacked) instead.
 
-### Method 2: Unpacked Extension (For Development/Testing)
+#### Method 2: Unpacked Extension (For Development/Testing)
 
 1. **Download the source code:**
    - Download `AutoNextPuzzle.zip` from [Releases](https://github.com/fwhuy/AutoNextPuzzle/releases/latest)
@@ -48,6 +49,37 @@ A Chrome extension that automatically clicks the "Next" or "Continue" button aft
 
 **Note:** Keep the extension folder in a permanent location. If you move or delete it, you'll need to reload the extension.
 
+---
+
+### Brave Browser
+
+Brave blocks `.crx` installs from outside the Chrome Web Store, so you must load the extension as **unpacked**. This is straightforward:
+
+1. **Download the source code:**
+   - Download `AutoNextPuzzle.zip` from [Releases](https://github.com/fwhuy/AutoNextPuzzle/releases/latest)
+   - Or clone the repository: `git clone https://github.com/fwhuy/AutoNextPuzzle.git`
+
+2. **Extract the ZIP file** (if downloaded):
+   - Right-click the downloaded ZIP file
+   - Select "Extract All" or use your preferred extraction tool
+   - Choose a permanent location and extract the files to a folder
+
+3. **Enable Developer mode in Brave:**
+   - Open Brave and navigate to `brave://extensions/`
+   - Toggle **Developer mode** on (top-right corner)
+
+4. **Load the extension:**
+   - Click **Load unpacked**
+   - Select the folder containing the extracted files (the folder with `manifest.json`, `src/`, and `icons/`)
+   - The extension icon will appear in your Brave toolbar
+
+5. **Allow the extension to run:**
+   - Brave may show a warning that the extension is not from the Web Store — this is expected for sideloaded extensions
+   - Click **Keep** or dismiss the warning to keep the extension active
+   - If Brave asks again on restart, click **Keep** each time or pin the extension to make it easier to manage
+
+**Note:** Keep the extension folder in a permanent location. If you move or delete it, you'll need to reload it from `brave://extensions/`.
+
 ##  Usage
 
 1. **Initial Setup**:
@@ -57,7 +89,7 @@ A Chrome extension that automatically clicks the "Next" or "Continue" button aft
 
 2. **Configure Settings**:
    - **Toggle Auto-Next**: Click the toggle switch in the bottom-right corner to enable/disable
-   - **Adjust Delay**: Click the extension icon in your Chrome toolbar to open the popup
+   - **Adjust Delay**: Click the extension icon in your Chrome/Brave toolbar to open the popup
      - Adjust **Delay (milliseconds)** to your preferred waiting time
      - Default: 5ms (0.005 seconds) for instant advancement
      - Recommended range: 5-2000ms
