@@ -18,7 +18,8 @@
     {
       "matches": [
         "https://www.chess.com/puzzles",
-        "https://www.chess.com/puzzles/rated"
+        "https://www.chess.com/puzzles/rated",
+        "https://www.chess.com/puzzles/learning"
       ],
       "js": ["src/content.js"],
       "run_at": "document_idle"

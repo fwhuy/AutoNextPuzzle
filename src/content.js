@@ -30,6 +30,27 @@
   let positionUpdateTimeout = null;
   let resizeHandler = null;
   let scrollHandler = null;
+
+  function normalizeText(value) {
+    return (value || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
+  }
+
+  function isReadyToClick(element) {
+    if (!element) return false;
+    if (element.offsetParent === null) return false;
+    if (element.disabled) return false;
+    if (element.getAttribute('aria-disabled') === 'true') return false;
+    const className = normalizeText(element.className || '');
+    if (className.includes('disabled')) return false;
+    const computed = window.getComputedStyle(element);
+    if (computed.pointerEvents === 'none') return false;
+    if (computed.visibility === 'hidden') return false;
+    return true;
+  }
   
   function injectToggleIntoSettings() {
     if (document.getElementById('chess-auto-next-toggle')) return;
@@ -43,14 +64,26 @@
       'button[data-cy="next-move-arrow"]',
       'button[aria-label*="Next"]',
       'button[title*="Next"]',
+      'button[aria-label*="Próximo lance"]',
+      'button[aria-label*="Proximo lance"]',
+      'button[aria-label*="Próximo"]',
+      'button[aria-label*="Proximo"]',
+      'button[title*="Próximo lance"]',
+      'button[title*="Proximo lance"]',
+      'button[title*="Próximo"]',
+      'button[title*="Proximo"]',
       // Fallback: look for buttons with "next" in text (case-insensitive)
       () => {
         const buttons = document.querySelectorAll('button');
         return Array.from(buttons).find(btn => {
-          const text = btn.textContent?.trim().toLowerCase() || '';
-          const ariaLabel = (btn.getAttribute('aria-label') || '').toLowerCase();
-          return (text.includes('next move') || ariaLabel.includes('next move')) && 
-                 btn.offsetParent !== null;
+          const text = normalizeText(btn.textContent);
+          const ariaLabel = normalizeText(btn.getAttribute('aria-label'));
+          return (
+            text.includes('next move') ||
+            ariaLabel.includes('next move') ||
+            text.includes('proximo lance') ||
+            ariaLabel.includes('proximo lance')
+          ) && btn.offsetParent !== null;
         });
       }
     ];
@@ -135,7 +168,11 @@
         'button[aria-label="Next Move"]',
         'button[data-cy="next-move-arrow"]',
         'button[aria-label*="Next Move"]',
-        'button[aria-label*="Next"]'
+        'button[aria-label*="Next"]',
+        'button[aria-label*="Próximo lance"]',
+        'button[aria-label*="Proximo lance"]',
+        'button[aria-label*="Próximo"]',
+        'button[aria-label*="Proximo"]'
       ];
       
       for (const selector of selectors) {
@@ -269,62 +306,77 @@
     updateToggleState();
   }
 
-  // Function to find and click the Next/Continue button
-  function clickNextButton() {
-    if (!settings.enabled || hasClicked) return;
-
-    // Common selectors for Chess.com puzzle buttons
+  function findClickableNextButton() {
     const selectors = [
+      'button[data-cy="next-move-arrow"]',
       'button[aria-label="Next"]',
       'button[aria-label="Continue"]',
+      'button[aria-label*="Próximo"]',
+      'button[aria-label*="Proximo"]',
+      'button[aria-label*="Continuar"]',
+      'button[aria-label*="Seguinte"]',
       'a[aria-label="Next"]',
       'a[aria-label="Continue"]',
       '.puzzle-next-button',
       '[data-cy="next-puzzle"]'
     ];
 
-    let button = null;
-
-    // Try standard querySelector with valid selectors
     for (const selector of selectors) {
       try {
-        button = document.querySelector(selector);
-        if (button && button.offsetParent !== null) {
-          break;
+        const candidate = document.querySelector(selector);
+        if (isReadyToClick(candidate)) {
+          return candidate;
         }
       } catch (e) {
-        // Continue to next selector
+        // Ignore invalid selector results
       }
     }
-    
-    // Fallback: search by text content and aria-label (case-insensitive)
-    if (!button || button.offsetParent === null) {
-      const buttons = document.querySelectorAll('button, a[role="button"], a.button');
-      button = Array.from(buttons).find(btn => {
-        if (btn.offsetParent === null) return false;
-        
-        const text = btn.textContent.trim().toLowerCase();
-        const ariaLabel = (btn.getAttribute('aria-label') || '').toLowerCase();
-        const className = (btn.className || '').toLowerCase();
-        
-        // Check for "next" or "continue" in text or aria-label
-        const hasNext = text.includes('next') || ariaLabel.includes('next');
-        const hasContinue = (text.includes('continue') && !text.includes('continue solving')) || 
-                           (ariaLabel.includes('continue') && !ariaLabel.includes('continue solving'));
-        const hasNextClass = className.includes('next');
-        
-        return (hasNext || hasContinue || hasNextClass);
-      });
-    }
 
-    if (button && button.offsetParent !== null) {
+    const buttons = document.querySelectorAll('button, a[role="button"], a.button');
+    return Array.from(buttons).find(btn => {
+      if (!isReadyToClick(btn)) return false;
+
+      const text = normalizeText(btn.textContent);
+      const ariaLabel = normalizeText(btn.getAttribute('aria-label'));
+      const className = normalizeText(btn.className);
+
+      const hasNext =
+        text.includes('next') ||
+        ariaLabel.includes('next') ||
+        text.includes('proximo') ||
+        ariaLabel.includes('proximo') ||
+        text.includes('seguinte') ||
+        ariaLabel.includes('seguinte');
+      const hasContinue = (text.includes('continue') && !text.includes('continue solving')) ||
+                         (ariaLabel.includes('continue') && !ariaLabel.includes('continue solving')) ||
+                         text.includes('continuar') ||
+                         ariaLabel.includes('continuar');
+      const hasNextClass = className.includes('next');
+
+      return (hasNext || hasContinue || hasNextClass);
+    }) || null;
+  }
+
+  // Function to find and click the Next/Continue button
+  function clickNextButton() {
+    if (!settings.enabled || hasClicked) return false;
+    const button = findClickableNextButton();
+
+    if (isReadyToClick(button)) {
       hasClicked = true;
       console.log('Chess.com Auto-Next: Clicking button after', settings.delay, 'ms');
       
       setTimeout(() => {
-        button.click();
+        // Re-resolve at click time because Chess.com frequently re-renders this node.
+        const liveButton = findClickableNextButton();
+        if (!isReadyToClick(liveButton)) {
+          hasClicked = false;
+          return;
+        }
+        liveButton.click();
+        liveButton.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
         // Reset after a delay to allow for next puzzle
-        setTimeout(() => { hasClicked = false; }, 2000);
+        setTimeout(() => { hasClicked = false; }, CLICK_LOCK_MS);
       }, settings.delay);
       
       return true;
@@ -333,23 +385,62 @@
     return false;
   }
 
+  const completionIndicators = [
+    '.puzzle-complete',
+    '.puzzle-success',
+    '[class*="result"]',
+    '[class*="success"]',
+    '[class*="complete"]',
+    '[class*="corret"]',
+    'button[aria-label="Next"]',
+    'button[data-cy="next-move-arrow"]:not([disabled])',
+    'button[aria-label*="Próximo"]',
+    'button[aria-label*="Proximo"]',
+    'button[aria-label*="Continue"]',
+    'button[aria-label*="Continuar"]'
+  ];
+
+  function hasCompletionIndicator() {
+    for (const indicator of completionIndicators) {
+      if (document.querySelector(indicator)) return true;
+    }
+    return false;
+  }
+
+  let clickRetryTimer = null;
+  let clickRetryAttempts = 0;
+  const CLICK_RETRY_INTERVAL_MS = 150;
+  const CLICK_RETRY_MAX_ATTEMPTS = 30;
+  const CLICK_LOCK_MS = 900;
+
+  function stopClickRetry() {
+    if (clickRetryTimer) {
+      clearInterval(clickRetryTimer);
+      clickRetryTimer = null;
+    }
+    clickRetryAttempts = 0;
+  }
+
+  function startClickRetry() {
+    if (clickRetryTimer || !settings.enabled) return;
+
+    clickRetryAttempts = 0;
+    clickRetryTimer = setInterval(() => {
+      clickRetryAttempts += 1;
+      const clicked = clickNextButton();
+
+      if (clicked || !hasCompletionIndicator() || clickRetryAttempts >= CLICK_RETRY_MAX_ATTEMPTS) {
+        stopClickRetry();
+      }
+    }, CLICK_RETRY_INTERVAL_MS);
+  }
+
   // Watch for puzzle completion indicators
   const observer = new MutationObserver((mutations) => {
     // Look for success/completion messages or result screens
-    const indicators = [
-      '.puzzle-complete',
-      '.puzzle-success',
-      '[class*="result"]',
-      '[class*="success"]',
-      '[class*="complete"]',
-      'button[aria-label="Next"]'
-    ];
-
-    for (const indicator of indicators) {
-      if (document.querySelector(indicator)) {
-        clickNextButton();
-        break;
-      }
+    if (hasCompletionIndicator()) {
+      const clicked = clickNextButton();
+      if (!clicked) startClickRetry();
     }
 
     // Check if any mutation added a "Next" button
@@ -357,9 +448,17 @@
       if (mutation.addedNodes.length > 0) {
         mutation.addedNodes.forEach(node => {
           if (node.nodeType === 1) { // Element node
-            const text = node.textContent?.toLowerCase() || '';
-            if (text.includes('next') || text.includes('continue')) {
-              clickNextButton();
+            const text = normalizeText(node.textContent);
+            if (
+              text.includes('next') ||
+              text.includes('continue') ||
+              text.includes('proximo') ||
+              text.includes('continuar') ||
+              text.includes('correto') ||
+              text.includes('correct')
+            ) {
+              const clicked = clickNextButton();
+              if (!clicked) startClickRetry();
             }
           }
         });
@@ -371,7 +470,8 @@
   observer.observe(document.body, {
     childList: true,
     subtree: true,
-    attributes: false
+    attributes: true,
+    attributeFilter: ['disabled', 'aria-disabled', 'class', 'style']
   });
 
   // Watch for settings menus to appear and inject toggle
